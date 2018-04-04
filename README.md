@@ -1,4 +1,4 @@
-# Biomedical-Knowledge-Semantic-Integration
+# Biomedical Knowledge Semantic Integration
 A platform to automatically retrieve and integrate knowledge relevant to a disease based on a semantic graph representation.
 
 ## Structure
