@@ -2,7 +2,7 @@
 A platform to automatically retrieve and integrate knowledge relevant to a disease based on a semantic graph representation.
 
 ## Structure
-The platform is structured into two individual parts, available in the repositories described below :
+The platform is structured into two individual parts, available in the repositories referenced below :
 ### Harvesting of Biomedical Knowledge: [Biomedical Harvesters](https://github.com/tasosnent/BiomedicalHarvesters)
 * Online retrieval of available up-to-date biomedical literature from PubMed and PMC
   * *Output:* The natural language text of the articles harvested (i.e. abstract or full-text) and relations of articles with their topic areas (i.e. MeSH headings)
