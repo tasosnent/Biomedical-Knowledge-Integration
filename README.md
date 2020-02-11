@@ -1,6 +1,8 @@
 # iASiS Open Data Graph
 A platform to automatically retrieve and integrate knowledge relevant to a disease based on a semantic graph representation.
 
+Nentidis, A., Bougiatiotis, K., Krithara, A., & Paliouras, G. (2019). Semantic integration of disease-specific knowledge, 1–8. Retrieved from http://arxiv.org/abs/1912.08633
+
 ## Structure
 The iASiS Open Data Graph platform is structured into two individual parts, available in the repositories referenced below :
 ### Harvesting of Biomedical Knowledge: [Biomedical Harvesters](https://github.com/tasosnent/BiomedicalHarvesters)
