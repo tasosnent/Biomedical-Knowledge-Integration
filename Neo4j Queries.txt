@@ -41,8 +41,7 @@
 	MATCH (concept:Entity{label:"Plants"})-[r]-(related_concept:Entity) WHERE ANY( rs IN r.resource WHERE rs = "text") RETURN distinct type(r), count(distinct r),sum(size(r.sent_id)), count(distinct related_concept)
 	// Concepts related to plants in disease-specific literature with corresponding source articles
 	MATCH (concept:Entity{label:"Plants"})-[r]-(related_concept:Entity) WHERE ANY( rs IN r.resource WHERE rs = "text") RETURN distinct related_concept.label,sum(size(r.sent_id)) as f, collect(r.sent_id) order by f desc
-		LC
-			Plants
+		LC Plants
 			Curcuma longa (Plant anticancer) : 15142674, 22489192, 23085518, 24321240, 24445042, 24651282, 24790429, 24840628, 25716014, 26498137, 26656720, 26922479, 28187956, 			
 			Chrysotile (NER  error): 1316719, 6313034, 18843176, 19897464, 20833758, 21642044, 23346982, 23991003, 			
 			Polyphenols (Plant-chemical anticancer): 10748608, 15039912, 17583542, 21505894, 21698198, 21801359, 22245142, 22532866, 22644961, 			
