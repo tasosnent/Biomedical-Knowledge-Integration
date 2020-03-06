@@ -1,0 +1,106 @@
+// Table 1
+	// All articles 
+	MATCH (n:Article) RETURN count(distinct n) 
+	// All articles with fulltext available	
+	MATCH (n:Article)<-[r:MENTIONED_IN]-(b:Entity) Where any (r1 in r.sent_id where r1 =~ ".*full.*") RETURN count(distinct n) 
+	// All concepts and relations extracted from literature
+	MATCH p=(a:Entity)-[r]-(b:Entity) where not r.resource in ['DO','GO','DRUGBANK','MESH'] RETURN count(distinct a),count(distinct r)
+	// All MeSH topic relations
+	MATCH p=()-[r:HAS_MESH]->() RETURN count(distinct r)
+	// All concept occurrence relations
+	MATCH p=()-[r:MENTIONED_IN]->() RETURN count(distinct r)
+
+// Table 2
+	// All GO concepts and relations
+	MATCH p=(a:Entity)-[r:IS_A]-(b:Entity) where any (rs in r.resource where rs in ["GO"]) RETURN count(distinct a.label),count(distinct r) 
+	// All DO concepts and relations
+	MATCH p=(a:Entity)-[r:IS_A]-(b:Entity) where any (rs in r.resource where rs in ["DO"]) RETURN count(distinct a.label),count(distinct r)
+	// All MeSH concepts and relations
+	MATCH p=(a:Entity)-[r:IS_A]-(b:Entity) where any (rs in r.resource where rs in ["MESH"]) RETURN count(distinct a.label),count(distinct r)
+	// All DRUGBANK concepts and relations
+	MATCH p=(a:Entity)-[r:INTERACTS_WITH]-(b:Entity) where any (rs in r.resource where rs in ["DRUGBANK"]) RETURN count(distinct a),count(distinct r)
+	
+// Table 3 
+	// All distinct semantic types ordered by the number of distinct corresponding concepts found (used for calculating ranknings and standard deviations)
+	MATCH (a:Article)<-[:MENTIONED_IN]-(n:Entity) UNWIND n.sem_types as st return distinct st, count(distinct n) as c order by c desc;
+
+// Footnote 14
+	// Extracted concepts with Semantic Type 'Plant' ordered by number of occurrences
+	MATCH (c:Entity)-[r:MENTIONED_IN]->(a:Article) where any (st in c.sem_types where st in ["plnt"]) RETURN distinct c.label, sum(size(r.sent_id)) as mentions order by mentions desc limit 15;
+
+// Concept info
+	// Articles where concept is mentioned
+	MATCH  (concept:Entity {label:"Plants"})-[r:MENTIONED_IN]->(article:Article) RETURN count(distinct article), sum(size(r.sent_id));
+	// Articles with concept as MeSH
+	MATCH (article:Article)-[:HAS_MESH]-(concept:Entity{label:"Plants"}) RETURN count(distinct article);
+	// Relations with concept
+	MATCH (concept:Entity{label:"Plants"})-[r]-(related_concept:Entity) WHERE ANY( rs IN r.resource WHERE rs = "text") RETURN distinct count(r), count(distinct type(r)), count(distinct related_concept)
+
+// Footnote 15
+	// Types of relations involving 'Plants' with corresponding counts
+	MATCH (concept:Entity{label:"Plants"})-[r]-(related_concept:Entity) WHERE ANY( rs IN r.resource WHERE rs = "text") RETURN distinct type(r), count(distinct r),sum(size(r.sent_id)), count(distinct related_concept)
+	// Concepts related to plants in disease-specific literature with corresponding source articles
+	MATCH (concept:Entity{label:"Plants"})-[r]-(related_concept:Entity) WHERE ANY( rs IN r.resource WHERE rs = "text") RETURN distinct related_concept.label,sum(size(r.sent_id)) as f, collect(r.sent_id) order by f desc
+		LC
+			Plants
+			Curcuma longa (Plant anticancer) : 15142674, 22489192, 23085518, 24321240, 24445042, 24651282, 24790429, 24840628, 25716014, 26498137, 26656720, 26922479, 28187956, 			
+			Chrysotile (NER  error): 1316719, 6313034, 18843176, 19897464, 20833758, 21642044, 23346982, 23991003, 			
+			Polyphenols (Plant-chemical anticancer): 10748608, 15039912, 17583542, 21505894, 21698198, 21801359, 22245142, 22532866, 22644961, 			
+			3-hydroxyflavone (Plant-chemical anticancer): 15456784, 18496814, 22552526, 23500080, 24678980, 25333250, 26238746, 26604699, 
+			Asbestos (NER  error): 6313034, 9327066, 17895892, 19897464, 20833758, 22247179, 26669850, 
+			Antineoplastic Agents (Plant-chemical anticancer): 17611679, 19624862, 23646116, 23646116, 25204604, 25825796, 27633248, 
+			Oils, Volatile (Plant-chemical anticancer): 24875281, 25105411, 25105411, 25105411, 25105411, 26081250, 26287817
+			Chlorophyll (Plant-chemical studied for anticancer potential): 15222124, 25781909, 25781909, 25781909, 
+			Magnolia (Plant studied for anticancer potential): 23580348, 23580348, 27593221, 
+			Nicotiana (Carcinogen plant): 20044584 abstract, 22403725 fulltext 37
+			Gossypium (Cotton plant, studied for anticancer potential): 3664481_abstract_7, 20012774_fullText_87
+			Bikinia le-testui (NER  error): 24498409_fullText_9, 21308725_abstract_6
+			Rosa (NER  error): 8542575_abstract_4, 23571718_abstract_1
+			
+//Example with Long Term Survivorship in LC 
+	Concept: [C1517940] Long Term Survivorship Semantic Type Finding [T033]
+	Concept: [C0013227] Pharmaceutical Preparations Semantic Type Pharmacologic Substance [T121]	
+	// Articles mentioned in: 2303
+	MATCH  (lts {id:"C1517940"})-[r:MENTIONED_IN]->(article) RETURN count(distinct article)
+	// Articles has mesh: 0
+	MATCH  (lts {id:"C1517940"})<-[r:HAS_MESH]-(article) RETURN count(distinct article)
+	// Relations
+	MATCH (entity:Entity)-[r2]-(lts{id:"C1517940"}) RETURN distinct type(r2), count(entity)
+	// Related concepts
+	MATCH (entity1:Entity)-[r]-(lts{id:"C1517940"}) RETURN entity1 as entity
+	MATCH (entity1:Entity)-[r]-(lts{id:"C1517940"}) RETURN entity1 as entity
+	// All concepts subordinate to drug (throug isa) co-occurring with Long Term Survivorship in literature
+	MATCH  (LTS:Entity {id:"C1517940"})-[r:MENTIONED_IN]->(article:Article)<-[r2:MENTIONED_IN]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"})  RETURN distinct drug.label, count(distinct article) as count, collect(distinct article.id) order by count desc;
+
+// Table 4
+	// All concepts subordinate to drug (throug isa) directly related with Long Term Survivorship in literature
+	MATCH  (LTS:Entity{id:"C1517940"})-[r]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"}) 
+	RETURN distinct drug.label, sum(size(r.sent_id)) as frequency, collect(type(r)), collect(r.sent_id) order by frequency desc;
+	//Drug interactions
+	MATCH  (LTS:Entity{id:"C1517940"})-[r]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"}), (drug)-[r2:INTERACTS_WITH]-(drug2:Entity) 
+	RETURN distinct drug.label, count(distinct drug2) as c order by c desc; 
+	// Interactions from DrugBank
+	MATCH  (LTS:Entity{id:"C1517940"})-[r]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"}), (drug)-[r2:INTERACTS_WITH]-(drug2:Entity) 
+	where any (rs in r2.resource where rs in ["DRUGBANK"])
+	RETURN distinct drug.label, count(distinct drug2) as c order by c desc;
+	// Enzyme interactions
+	MATCH  (LTS:Entity{id:"C1517940"})-[r]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"}), (drug)-[r2:INTERACTS_WITH]-(drug2:Entity) 
+	where any (st in drug2.sem_types where st in ["enzy"]) 
+	RETURN distinct drug.label, count(distinct drug2) as c order by c desc;
+	// Enzyme interactions from DrugBank
+	MATCH  (LTS:Entity{id:"C1517940"})-[r]-(drug:Entity)-[r3:ISA|:IS_A]->(drugRoot:Entity{id:"C0013227"}), (drug)-[r2:INTERACTS_WITH]-(drug2:Entity) 
+	where any (st in drug2.sem_types where st in ["enzy"]) and any (rs in r2.resource where rs in ["DRUGBANK"])
+	RETURN distinct drug.label, count(distinct drug2) as c order by c desc;
+
+// Shortest Paths example
+	MATCH p = AllShortestPaths((apoe4:Entity{label:"Long Term Survivorship"})-[r*]-(b:Entity{label:'Drug Combinations'})) 
+	WITH extract(node in nodes(p) | coalesce(node.label, "")) as nodeLabels,
+		 extract(rel in relationships(p) | type(rel)) as relationshipLabels,
+		 extract(rel in relationships(p) | size(rel.sent_id)) as relationshipIds
+	WITH reduce(nodePath="", nodeLabel in nodeLabels | nodePath + nodeLabel + ";") as nodePath,
+		 reduce(relPath="", relLabel in relationshipLabels | relPath + relLabel + ";") as relPath,     
+		 reduce(relSents=0, relSent in relationshipIds | relSent + relSents ) as relSents,
+		 reduce(pSize=0, relLabel in relationshipLabels | pSize + 1 ) as pSize
+	RETURN  nodePath, relPath, relSents, pSize, count(nodePath) as ord
+	order by ord desc
+	LIMIT 150
